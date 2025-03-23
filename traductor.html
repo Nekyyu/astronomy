@@ -1,5 +1,26 @@
 <html>
 	<head>
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <script>
+      const speechKey = "TU_CLAVE_AQUI";
+      const serviceRegion = "REGION_DEL_SERVICIO";  // Ejemplo: "eastus"
+  
+      function iniciarReconocimiento() {
+          const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(speechKey, serviceRegion);
+          const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+          const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
+  
+          recognizer.recognizeOnceAsync(result => {
+              if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
+                  alert("Texto reconocido: " + result.text);
+              } else {
+                  alert("No se reconoció ninguna voz. Razón: " + result.reason);
+              }
+  
+              recognizer.close();
+          });
+      }
+  </script>
 		<title>Astronomy</title>
 		<style type="text/css">
 .texto{
@@ -573,17 +594,28 @@ h1 {color: #fff;}
 		<br><br><br>
 		
 		<table align="center" border="0"><td>
-      <div class="textogrande" align="center">Sistema Solar<br><br><br></div>
-			<div class="texto" align="center">El sistema solar​ es el sistema planetario que liga gravitacionalmente a un conjunto de objetos astronómicos que giran directa o indirectamente en una órbita alrededor de una única estrella conocida con el nombre de Sol.</div>
+      <div class="textogrande" align="center">Prueba de Traductor<br><br><br></div>
+			<div class="texto">Requerimientos:<br>
+a) Diseñar un programa en plataforma posiblemente web o local<br>
+b) El propósito es recibir un mensaje de voz en español y regresar el mensaje
+en ingles o cualquier otro idioma de forma configurable.<br>
+c) Utilizar servicios gratuitos para poder hacer el enlace de servicios en Azure
+o en la plataforma que mas se les facilite.</div>
 		<table align="center" border="0">
 			<tr>
 					<td>
-						<img src="sol.jpg" width="500" height="500">
-						<br><h1 align="center">Sol</h1>
+						<img src="traductor.png" width="500" height="500">
+						<br><h1 align="center">Traductor</h1>
 					</td>
 			</tr>
 		</table>
-    <div class="texto" align="center">Esto abarca al sol, planetas (mercurio,venus,tierra,etc.), satelites, asteroides, etc.</div>
+
+    
+    <div class="texto" align="center">
+      Ingresa un audio
+      <button onclick="iniciarReconocimiento()">Hablar</button>
+
+    </div>
 	</table>
 	</body>
 </html>
