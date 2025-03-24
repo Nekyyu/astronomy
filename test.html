@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traductor de Voz</title>
+    <meta charset="utf-8" />
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #000;
+            color: #fff;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #42B72A;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Traductor de Voz (Español a Inglés)</h2>
+    <input id="key" type="text" placeholder="Ingresa tu clave de suscripción" size="50">
+    <br>
+    <button onclick="startTranslation()">Iniciar</button>
+    <button onclick="stopTranslation()">Detener</button>
+
+    <h3>Texto Reconocido</h3>
+    <textarea id="recognizedText" readonly></textarea>
+    <h3>Eventos</h3>
+    <textarea id="eventLog" readonly></textarea>
+
+    <script>
+        var reco;
+
+        function startTranslation() {
+            const speechKey = document.getElementById("key").value;
+            const serviceRegion = "eastus";
+
+            if (!speechKey) {
+                alert("Por favor ingresa tu clave de suscripción.");
+                return;
+            }
+
+            const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(speechKey, serviceRegion);
+            speechConfig.speechRecognitionLanguage = "es-MX";
+            speechConfig.addTargetLanguage("en");
+            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_TranslationVoice, "en-US-AmberNeural");
+
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            reco = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
+
+            reco.recognizing = (s, e) => {
+                document.getElementById("recognizedText").value += `Reconociendo: ${e.result.text}\n`;
+            };
+
+            reco.recognized = (s, e) => {
+                const translation = e.result.translations.get("en");
+                document.getElementById("recognizedText").value += `Traducido: ${translation}\n`;
+                speak(translation);
+            };
+
+            reco.canceled = (s, e) => {
+                document.getElementById("eventLog").value += `Cancelado: ${e.reason}\n`;
+            };
+
+            reco.sessionStarted = (s, e) => {
+                document.getElementById("eventLog").value += `Sesión iniciada: ${e.sessionId}\n`;
+            };
+
+            reco.sessionStopped = (s, e) => {
+                document.getElementById("eventLog").value += `Sesión detenida: ${e.sessionId}\n`;
+            };
+
+            reco.startContinuousRecognitionAsync();
+        }
+
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "en-US";
+            window.speechSynthesis.speak(msg);
+        }
+
+        function stopTranslation() {
+            if (reco) {
+                reco.stopContinuousRecognitionAsync();
+                document.getElementById("eventLog").value += "Reconocimiento detenido.\n";
+                window.speechSynthesis.cancel();
+            }
+        }
+    </script>
+</body>
+</html>
