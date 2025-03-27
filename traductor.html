@@ -1,621 +1,136 @@
+<!DOCTYPE html>
 <html>
-	<head>
-    <script type="text/javascript" src="./difflib-browser.js"></script>
+<head>
+    <title>Traductor de Voz</title>
+    <meta charset="utf-8" />
+    <script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #000;
+            color: #fff;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #42B72A;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+        }
+        textarea {
+            width: 80%;
+            height: 150px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Traductor de Voz</h2>
+    <select id="key">
+        <option value="3C3i5huHoQzsSOxUCt8D9iVF8sCrALCHolEWzcjjkfRpDxmVYYkzJQQJ99BCACYeBjFXJ3w3AAAYACOGrQYI" selected="selected">Key Seleccionada</option>
+    </select>
+    <br>
+    <select id="languageTargetOptions">
+        <option value="ar-EG-SalmaNeural">Arabic - EG</option>
+        <option value="ca-ES-AlbaNeural">Catalan - ES</option>
+        <option value="da-DK-JeppeNeural">Danish - DK</option>
+        <option value="de-DE-BerndNeural" selected="selected">German - DE</option>
+        <option value="en-AU-NatashaNeural">English - AU</option>
+        <option value="en-CA-ClaraNeural">English - CA</option>
+        <option value="en-GB-NoahNeural">English - GB</option>
+        <option value="en-IN-NeerjaNeural">English - IN</option>
+        <option value="en-US-AmberNeural">English - US</option>
+        <option value="es-ES-ElviraNeural">Spanish - ES</option>
+        <option value="fi-FI-HarriNeural">Finnish - FI</option>
+        <option value="fr-CA-JeanNeural">French - CA</option>
+        <option value="fr-FR-ClaudeNeural">French - FR</option>
+        <option value="hi-IN-MadhurNeural">Hindi - IN</option>
+        <option value="it-IT-CataldoNeural">Italian - IT</option>
+        <option value="ja-JP-KeitaNeural">Japanese - JP</option>
+        <option value="ko-KR-InJoonNeural">Korean - KR</option>
+        <option value="nb-NO-FinnNeural">Norwegian - NO</option>
+        <option value="nl-NL-ColetteNeural">Dutch - NL</option>
+        <option value="pl-PL-ZofiaNeural">Polish - PL</option>
+        <option value="pt-BR-BrendaNeural">Portuguese - BR</option>
+        <option value="pt-PT-RaquelNeural">Portuguese - PT</option>
+        <option value="ru-RU-DmitryNeural">Russian - RU</option>
+        <option value="sv-SE-HilleviNeural">Swedish - SE</option>
+        <option value="zh-CN-XiaohanNeural">Chinese - CN</option>
+        <option value="zh-HK-HiuGaaiNeural">Chinese - HK</option>
+        <option value="zh-TW-YunJheNeural">Chinese - TW</option>
+    </select>
+    <br>
+    <button onclick="startTranslation()">Iniciar</button>
+    <button onclick="stopTranslation()">Detener</button>
+
+    <h3>Texto Reconocido</h3>
+    <textarea id="recognizedText" readonly></textarea>
+    <h3>Eventos</h3>
+    <textarea id="eventLog" readonly></textarea>
+
     <script>
-      const speechKey = "3C3i5huHoQzsSOxUCt8D9iVF8sCrALCHolEWzcjjkfRpDxmVYYkzJQQJ99BCACYeBjFXJ3w3AAAYACOGrQYI";
-      const serviceRegion = "eastus";  // Ejemplo: "eastus"
-  
-      function iniciarReconocimiento() {
-          const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(speechKey, serviceRegion);
-          const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
-          const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig, audioConfig);
-  
-          recognizer.recognizeOnceAsync(result => {
-              if (result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-                  alert("Texto reconocido: " + result.text);
-              } else {
-                  alert("No se reconoció ninguna voz. Razón: " + result.reason);
-              }
-  
-              recognizer.close();
-          });
-      }
-  </script>
-		<title>Astronomy</title>
-		<style type="text/css">
-.texto{
-	font-family:'Times New Roman', Times, serif;
-	font-size: 16px;
-	text-align: center;
-	line-height: 22px;
-	color: #fff;
-}
-.textogrande{
-	font-family:Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-	font-size: 26px;
-	text-align: center;
-	line-height: 25px;
-	color: #fff;
-}
-			body {
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: radial-gradient(ellipse at bottom, #000000 0%, #0a0b10 100%);
-}
-h1 {color: #fff;}
-.stars {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 70%;
-  height: 10%;
-  transform: rotate(-45deg);
-  z-index: -1;
-}
+        var reco;
 
-.star {
-  --star-color: #ffff;
-  --star-tail-length: 6em;
-  --star-tail-height: 2px;
-  --star-width: calc(var(--star-tail-length) / 6);
-  --fall-duration: 9s;
-  --tail-fade-duration: var(--fall-duration);
-  position: absolute;
-  top: var(--top-offset);
-  left: 0;
-  width: var(--star-tail-length);
-  height: var(--star-tail-height);
-  color: var(--star-color);
-  background: linear-gradient(45deg, currentColor, transparent);
-  border-radius: 50%;
-  filter: drop-shadow(0 0 6px currentColor);
-  transform: translate3d(104em, 0, 0);
-  animation: fall var(--fall-duration) var(--fall-delay) linear infinite, tail-fade var(--tail-fade-duration) var(--fall-delay) ease-out infinite;
-}
-@media screen and (max-width: 1000px) {
-  .star {
-    animation: fall var(--fall-duration) var(--fall-delay) linear infinite;
-  }
-}
-.star:nth-child(1) {
-  --star-tail-length: 6.57em;
-  --top-offset: 2.52vh;
-  --fall-duration: 10.773s;
-  --fall-delay: 5.95s;
-}
-.star:nth-child(2) {
-  --star-tail-length: 7.36em;
-  --top-offset: 1.29vh;
-  --fall-duration: 6.856s;
-  --fall-delay: 5.317s;
-}
-.star:nth-child(3) {
-  --star-tail-length: 7.08em;
-  --top-offset: 87.81vh;
-  --fall-duration: 6.624s;
-  --fall-delay: 7.189s;
-}
-.star:nth-child(4) {
-  --star-tail-length: 5.77em;
-  --top-offset: 39.86vh;
-  --fall-duration: 8.279s;
-  --fall-delay: 5.871s;
-}
-.star:nth-child(5) {
-  --star-tail-length: 7.48em;
-  --top-offset: 87.24vh;
-  --fall-duration: 9.134s;
-  --fall-delay: 1.15s;
-}
-.star:nth-child(6) {
-  --star-tail-length: 5.49em;
-  --top-offset: 81.4vh;
-  --fall-duration: 7.448s;
-  --fall-delay: 7.735s;
-}
-.star:nth-child(7) {
-  --star-tail-length: 7.17em;
-  --top-offset: 65.63vh;
-  --fall-duration: 10.312s;
-  --fall-delay: 7.192s;
-}
-.star:nth-child(8) {
-  --star-tail-length: 5.36em;
-  --top-offset: 7.77vh;
-  --fall-duration: 7.926s;
-  --fall-delay: 8.824s;
-}
-.star:nth-child(9) {
-  --star-tail-length: 5.37em;
-  --top-offset: 49.51vh;
-  --fall-duration: 10.028s;
-  --fall-delay: 6.495s;
-}
-.star:nth-child(10) {
-  --star-tail-length: 6.11em;
-  --top-offset: 40.32vh;
-  --fall-duration: 11.697s;
-  --fall-delay: 2.736s;
-}
-.star:nth-child(11) {
-  --star-tail-length: 7.25em;
-  --top-offset: 39.31vh;
-  --fall-duration: 10.414s;
-  --fall-delay: 0.045s;
-}
-.star:nth-child(12) {
-  --star-tail-length: 5.63em;
-  --top-offset: 64.58vh;
-  --fall-duration: 11.612s;
-  --fall-delay: 6.757s;
-}
-.star:nth-child(13) {
-  --star-tail-length: 5.33em;
-  --top-offset: 41.7vh;
-  --fall-duration: 8.63s;
-  --fall-delay: 8.108s;
-}
-.star:nth-child(14) {
-  --star-tail-length: 5.83em;
-  --top-offset: 65.48vh;
-  --fall-duration: 8.078s;
-  --fall-delay: 6.011s;
-}
-.star:nth-child(15) {
-  --star-tail-length: 5.69em;
-  --top-offset: 76.34vh;
-  --fall-duration: 10.386s;
-  --fall-delay: 1.228s;
-}
-.star:nth-child(16) {
-  --star-tail-length: 6.27em;
-  --top-offset: 7.4vh;
-  --fall-duration: 9.73s;
-  --fall-delay: 1.038s;
-}
-.star:nth-child(17) {
-  --star-tail-length: 5.08em;
-  --top-offset: 62.62vh;
-  --fall-duration: 10.585s;
-  --fall-delay: 1.159s;
-}
-.star:nth-child(18) {
-  --star-tail-length: 5.83em;
-  --top-offset: 98.19vh;
-  --fall-duration: 6.346s;
-  --fall-delay: 7.852s;
-}
-.star:nth-child(19) {
-  --star-tail-length: 5.04em;
-  --top-offset: 1.32vh;
-  --fall-duration: 9.02s;
-  --fall-delay: 5.994s;
-}
-.star:nth-child(20) {
-  --star-tail-length: 6.38em;
-  --top-offset: 51.39vh;
-  --fall-duration: 8.368s;
-  --fall-delay: 6.308s;
-}
-.star:nth-child(21) {
-  --star-tail-length: 5.72em;
-  --top-offset: 18.01vh;
-  --fall-duration: 7.164s;
-  --fall-delay: 2.423s;
-}
-.star:nth-child(22) {
-  --star-tail-length: 7.13em;
-  --top-offset: 33.02vh;
-  --fall-duration: 9.079s;
-  --fall-delay: 8.969s;
-}
-.star:nth-child(23) {
-  --star-tail-length: 5.74em;
-  --top-offset: 83.37vh;
-  --fall-duration: 10.59s;
-  --fall-delay: 5.251s;
-}
-.star:nth-child(24) {
-  --star-tail-length: 7.08em;
-  --top-offset: 26.56vh;
-  --fall-duration: 9.124s;
-  --fall-delay: 4.655s;
-}
-.star:nth-child(25) {
-  --star-tail-length: 7.24em;
-  --top-offset: 5.76vh;
-  --fall-duration: 11s;
-  --fall-delay: 5.149s;
-}
-.star:nth-child(26) {
-  --star-tail-length: 7.29em;
-  --top-offset: 73.83vh;
-  --fall-duration: 6.134s;
-  --fall-delay: 8.03s;
-}
-.star:nth-child(27) {
-  --star-tail-length: 7.44em;
-  --top-offset: 16.2vh;
-  --fall-duration: 6.185s;
-  --fall-delay: 4.832s;
-}
-.star:nth-child(28) {
-  --star-tail-length: 6.71em;
-  --top-offset: 27.96vh;
-  --fall-duration: 11.138s;
-  --fall-delay: 7.903s;
-}
-.star:nth-child(29) {
-  --star-tail-length: 6.81em;
-  --top-offset: 93.97vh;
-  --fall-duration: 6.547s;
-  --fall-delay: 2.027s;
-}
-.star:nth-child(30) {
-  --star-tail-length: 6.96em;
-  --top-offset: 5.41vh;
-  --fall-duration: 6.185s;
-  --fall-delay: 0.22s;
-}
-.star:nth-child(31) {
-  --star-tail-length: 7.16em;
-  --top-offset: 56vh;
-  --fall-duration: 7.683s;
-  --fall-delay: 7.231s;
-}
-.star:nth-child(32) {
-  --star-tail-length: 7.06em;
-  --top-offset: 50.92vh;
-  --fall-duration: 8.687s;
-  --fall-delay: 2.83s;
-}
-.star:nth-child(33) {
-  --star-tail-length: 7.29em;
-  --top-offset: 1.46vh;
-  --fall-duration: 11.412s;
-  --fall-delay: 7.673s;
-}
-.star:nth-child(34) {
-  --star-tail-length: 6.89em;
-  --top-offset: 55.22vh;
-  --fall-duration: 9.024s;
-  --fall-delay: 7.319s;
-}
-.star:nth-child(35) {
-  --star-tail-length: 7.07em;
-  --top-offset: 30.73vh;
-  --fall-duration: 8.6s;
-  --fall-delay: 0.465s;
-}
-.star:nth-child(36) {
-  --star-tail-length: 6.52em;
-  --top-offset: 93.35vh;
-  --fall-duration: 11.982s;
-  --fall-delay: 6.951s;
-}
-.star:nth-child(37) {
-  --star-tail-length: 5.71em;
-  --top-offset: 55.57vh;
-  --fall-duration: 9.799s;
-  --fall-delay: 9.722s;
-}
-.star:nth-child(38) {
-  --star-tail-length: 5.53em;
-  --top-offset: 34.24vh;
-  --fall-duration: 8.867s;
-  --fall-delay: 4.366s;
-}
-.star:nth-child(39) {
-  --star-tail-length: 7.21em;
-  --top-offset: 29.88vh;
-  --fall-duration: 6.248s;
-  --fall-delay: 0.648s;
-}
-.star:nth-child(40) {
-  --star-tail-length: 5.76em;
-  --top-offset: 58.67vh;
-  --fall-duration: 10.429s;
-  --fall-delay: 7s;
-}
-.star:nth-child(41) {
-  --star-tail-length: 6.35em;
-  --top-offset: 41.96vh;
-  --fall-duration: 7.566s;
-  --fall-delay: 8.946s;
-}
-.star:nth-child(42) {
-  --star-tail-length: 6.08em;
-  --top-offset: 54.57vh;
-  --fall-duration: 6.343s;
-  --fall-delay: 5.506s;
-}
-.star:nth-child(43) {
-  --star-tail-length: 5.47em;
-  --top-offset: 28.15vh;
-  --fall-duration: 11.506s;
-  --fall-delay: 1.367s;
-}
-.star:nth-child(44) {
-  --star-tail-length: 5.55em;
-  --top-offset: 17.4vh;
-  --fall-duration: 11.83s;
-  --fall-delay: 4.706s;
-}
-.star:nth-child(45) {
-  --star-tail-length: 5.45em;
-  --top-offset: 81.34vh;
-  --fall-duration: 8.576s;
-  --fall-delay: 8.945s;
-}
-.star:nth-child(46) {
-  --star-tail-length: 6.15em;
-  --top-offset: 28.37vh;
-  --fall-duration: 10.723s;
-  --fall-delay: 3.285s;
-}
-.star:nth-child(47) {
-  --star-tail-length: 6.56em;
-  --top-offset: 95.66vh;
-  --fall-duration: 8.083s;
-  --fall-delay: 8.907s;
-}
-.star:nth-child(48) {
-  --star-tail-length: 5.65em;
-  --top-offset: 77.28vh;
-  --fall-duration: 7.146s;
-  --fall-delay: 3.24s;
-}
-.star:nth-child(49) {
-  --star-tail-length: 6.6em;
-  --top-offset: 91.54vh;
-  --fall-duration: 7.092s;
-  --fall-delay: 2.957s;
-}
-.star:nth-child(50) {
-  --star-tail-length: 6.65em;
-  --top-offset: 9.79vh;
-  --fall-duration: 9.192s;
-  --fall-delay: 5.259s;
-}
-.star::before, .star::after {
-  position: absolute;
-  content: "";
-  top: 0;
-  left: calc(var(--star-width) / -2);
-  width: var(--star-width);
-  height: 100%;
-  background: linear-gradient(45deg, transparent, currentColor, transparent);
-  border-radius: inherit;
-  animation: blink 2s linear infinite;
-}
-.star::before {
-  transform: rotate(45deg);
-}
-.star::after {
-  transform: rotate(-45deg);
-}
+        function startTranslation() {
+            const languageTargetOptions = document.getElementById("languageTargetOptions");
+            const speechKey = document.getElementById("key").value;
+            const serviceRegion = "eastus";
 
-@keyframes fall {
-  to {
-    transform: translate3d(-30em, 0, 0);
-  }
-}
-@keyframes tail-fade {
-  0%, 50% {
-    width: var(--star-tail-length);
-    opacity: 1;
-  }
-  70%, 80% {
-    width: 0;
-    opacity: 0.4;
-  }
-  100% {
-    width: 0;
-    opacity: 0;
-  }
-}
-@keyframes blink {
-  50% {
-    opacity: 0.6;
-  }
-}
-			
-			table {
-				align-content: center;
-				border: 1px solid powderblue;
-  				padding: 30px;
-				font-size: 5px;
-				line-height: 2;
-				letter-spacing: 1px;
-				background-color: rgb(0, 0, 0);
-				border-radius: 2%;
-				border-style:inset;
-				size: 10%;
-			}
-			#header {
-				margin:auto;
-				width:1000px;
-				font-family:Arial, Helvetica, sans-serif;
-			}
-			
-			ul, ol {
-				list-style:none;
-			}
-			
-			.nav > li {
-				float:left;
-			}
-			
-			.nav li a {
-				background-color:#000;
-				color:#fff;
-				text-decoration:dashed;
-				padding:10px 32px;
-				display:block;
+            const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(speechKey, serviceRegion);
+            speechConfig.speechRecognitionLanguage = "es-MX";
+            const targetLanguage = languageTargetOptions.value.substring(0, 5);
+            speechConfig.addTargetLanguage(targetLanguage);
+            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_TranslationVoice, languageTargetOptions.value);
 
-			}
-			
-			.nav li a:hover {
-				background-color:#434343;
-			}
-			
-			.nav li ul {
-				display:none;
-				position:absolute;
-				min-width:200px;
-			}
-			
-			.nav li:hover > ul {
-				display:grid;
-			}
-			
-			.nav li ul li {
-				position:relative;
-			}
-			
-			.nav li ul li ul {
-				right:-140px;
-				top:0px;
-			}
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
+            reco = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
 
-			button{
-				background-color: #42B72A;
-				height: 40px;
-				border-radius: 5px;
-			}
+            reco.recognized = (s, e) => {
+                const translation = e.result.translations.get(targetLanguage.substring(0, 2)) || "No se pudo traducir.";
+                document.getElementById("recognizedText").value += `Traducido: ${translation}\n`;
+                synthesizeSpeech(translation, languageTargetOptions.value);
+            };
 
-		</style>
-	</head>
-	<body >
-		<div class="stars">
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-			<div class="star"></div>
-		  </div>
-		<p>
-		<div id="header">
-			<ul class="nav">
+            reco.canceled = (s, e) => {
+                document.getElementById("eventLog").value += `Cancelado: ${e.reason}\n`;
+            };
 
-				<li><a href="inicio.html">Inicio</a></li>
-				<li><a href="sistema.html">Sistema Solar</a>
-					<ul>
-						<li><a href="sol.html">Sol</a></li>
-					
-					
-						<li><a href="mercurio.html">Mercurio</a></li>
-					
-					
-						<li><a href="venus.html">Venus</a></li>
-					
-						<li><a href="tierra.html">Tierra</a></li>
-					
-						<li><a href="marte.html">Marte</a></li>
-					
-						<li><a href="jupiter.html">Jupiter</a></li>
-					
-						<li><a href="saturno.html">Saturno</a></li>
-					
-						<li><a href="urano.html">Urano</a></li>
-					
-						<li><a href="neptuno.html">Neptuno</a></li>
-					</ul>
-					
-				</li>
-				<li><a href="luna.html">Luna</a>
-					<ul>
-						<li><a href="mapa.html">Mapa</a></li>
-					</ul>
-					<ul>
-						<li><a href="viajes.html">Viajes</a></li>
-					</ul>
-				</li>
-				
-				
-				<li><a href="objetos.html">Objetos Espaciales</a>
-					<ul>
-						<li><a href="agujeros.html">Agujeros Negros</a></li>
-					</ul>
-				</li>
-				
-				<li><a href="traductor.html">Traductor</a>
-				</li>
+            reco.startContinuousRecognitionAsync();
+        }
 
+        function synthesizeSpeech(text, voice) {
+            const speechKey = document.getElementById("key").value;
+            const serviceRegion = "eastus";
+            const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(speechKey, serviceRegion);
+            speechConfig.speechSynthesisVoiceName = voice;
+            
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+            const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+            
+            synthesizer.speakTextAsync(text,
+                result => {
+                    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                        console.log("Síntesis completada para: " + text);
+                    } else {
+                        console.error("Error en síntesis: ", result.errorDetails);
+                    }
+                    synthesizer.close();
+                },
+                error => {
+                    console.error("Error: " + error);
+                    synthesizer.close();
+                });
+        }
 
-
-		</div></p>
-		<br><br><br>
-		
-		<table align="center" border="0"><td>
-      <div class="textogrande" align="center">Prueba de Traductor<br><br><br></div>
-			<div class="texto">Requerimientos:<br>
-a) Diseñar un programa en plataforma posiblemente web o local<br>
-b) El propósito es recibir un mensaje de voz en español y regresar el mensaje
-en ingles o cualquier otro idioma de forma configurable.<br>
-c) Utilizar servicios gratuitos para poder hacer el enlace de servicios en Azure
-o en la plataforma que mas se les facilite.</div>
-		<table align="center" border="0">
-			<tr>
-					<td>
-						<img src="traductor.png" width="500" height="500">
-						<br><h1 align="center">Traductor</h1>
-					</td>
-			</tr>
-		</table>
-
-    
-    <div class="texto" align="center">
-      Ingresa un audio
-      <button onclick="iniciarReconocimiento()">Hablar</button>
-
-    </div>
-	</table>
-	</body>
+        function stopTranslation() {
+            if (reco) {
+                reco.stopContinuousRecognitionAsync();
+                document.getElementById("eventLog").value += "Reconocimiento detenido.\n";
+            }
+        }
+    </script>
+</body>
 </html>
