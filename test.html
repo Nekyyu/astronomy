@@ -28,8 +28,40 @@
     </style>
 </head>
 <body>
-    <h2>Traductor de Voz (Español a Inglés)</h2>
-    <input id="key" type="text" placeholder="Ingresa tu clave de suscripción" size="50">
+    <h2>Traductor de Voz</h2>
+    <select id="key">
+        <option value="3C3i5huHoQzsSOxUCt8D9iVF8sCrALCHolEWzcjjkfRpDxmVYYkzJQQJ99BCACYeBjFXJ3w3AAAYACOGrQYI" selected="selected">Key Seleccionada</option>
+    </select>
+    <br>
+    <select id="languageTargetOptions">
+        <option value="ar-EG-SalmaNeural">Arabic - EG</option>
+        <option value="ca-ES-AlbaNeural">Catalan - ES</option>
+        <option value="da-DK-JeppeNeural">Danish - DK</option>
+        <option value="de-DE-BerndNeural" selected="selected">German - DE</option>
+        <option value="en-AU-NatashaNeural">English - AU</option>
+        <option value="en-CA-ClaraNeural">English - CA</option>
+        <option value="en-GB-NoahNeural">English - GB</option>
+        <option value="en-IN-NeerjaNeural">English - IN</option>
+        <option value="en-US-AmberNeural">English - US</option>
+        <option value="es-ES-ElviraNeural">Spanish - ES</option>
+        <option value="fi-FI-HarriNeural">Finnish - FI</option>
+        <option value="fr-CA-JeanNeural">French - CA</option>
+        <option value="fr-FR-ClaudeNeural">French - FR</option>
+        <option value="hi-IN-MadhurNeural">Hindi - IN</option>
+        <option value="it-IT-CataldoNeural">Italian - IT</option>
+        <option value="ja-JP-KeitaNeural">Japanese - JP</option>
+        <option value="ko-KR-InJoonNeural">Korean - KR</option>
+        <option value="nb-NO-FinnNeural">Norwegian - NO</option>
+        <option value="nl-NL-ColetteNeural">Dutch - NL</option>
+        <option value="pl-PL-ZofiaNeural">Polish - PL</option>
+        <option value="pt-BR-BrendaNeural">Portuguese - BR</option>
+        <option value="pt-PT-RaquelNeural">Portuguese - PT</option>
+        <option value="ru-RU-DmitryNeural">Russian - RU</option>
+        <option value="sv-SE-HilleviNeural">Swedish - SE</option>
+        <option value="zh-CN-XiaohanNeural">Chinese - CN</option>
+        <option value="zh-HK-HiuGaaiNeural">Chinese - HK</option>
+        <option value="zh-TW-YunJheNeural">Chinese - TW</option>
+    </select>
     <br>
     <button onclick="startTranslation()">Iniciar</button>
     <button onclick="stopTranslation()">Detener</button>
@@ -43,58 +75,60 @@
         var reco;
 
         function startTranslation() {
+            const languageTargetOptions = document.getElementById("languageTargetOptions");
             const speechKey = document.getElementById("key").value;
             const serviceRegion = "eastus";
 
-            if (!speechKey) {
-                alert("Por favor ingresa tu clave de suscripción.");
-                return;
-            }
-
             const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(speechKey, serviceRegion);
             speechConfig.speechRecognitionLanguage = "es-MX";
-            speechConfig.addTargetLanguage("en");
-            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_TranslationVoice, "en-US-AmberNeural");
+            const targetLanguage = languageTargetOptions.value.substring(0, 5);
+            speechConfig.addTargetLanguage(targetLanguage);
+            speechConfig.setProperty(SpeechSDK.PropertyId.SpeechServiceConnection_TranslationVoice, languageTargetOptions.value);
 
             const audioConfig = SpeechSDK.AudioConfig.fromDefaultMicrophoneInput();
             reco = new SpeechSDK.TranslationRecognizer(speechConfig, audioConfig);
 
-            reco.recognizing = (s, e) => {
-                document.getElementById("recognizedText").value += `Reconociendo: ${e.result.text}\n`;
-            };
-
             reco.recognized = (s, e) => {
-                const translation = e.result.translations.get("en");
+                const translation = e.result.translations.get(targetLanguage.substring(0, 2)) || "No se pudo traducir.";
                 document.getElementById("recognizedText").value += `Traducido: ${translation}\n`;
-                speak(translation);
+                synthesizeSpeech(translation, languageTargetOptions.value);
             };
 
             reco.canceled = (s, e) => {
                 document.getElementById("eventLog").value += `Cancelado: ${e.reason}\n`;
             };
 
-            reco.sessionStarted = (s, e) => {
-                document.getElementById("eventLog").value += `Sesión iniciada: ${e.sessionId}\n`;
-            };
-
-            reco.sessionStopped = (s, e) => {
-                document.getElementById("eventLog").value += `Sesión detenida: ${e.sessionId}\n`;
-            };
-
             reco.startContinuousRecognitionAsync();
         }
 
-        function speak(text) {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = "en-US";
-            window.speechSynthesis.speak(msg);
+        function synthesizeSpeech(text, voice) {
+            const speechKey = document.getElementById("key").value;
+            const serviceRegion = "eastus";
+            const speechConfig = SpeechSDK.SpeechConfig.fromSubscription(speechKey, serviceRegion);
+            speechConfig.speechSynthesisVoiceName = voice;
+            
+            const audioConfig = SpeechSDK.AudioConfig.fromDefaultSpeakerOutput();
+            const synthesizer = new SpeechSDK.SpeechSynthesizer(speechConfig, audioConfig);
+            
+            synthesizer.speakTextAsync(text,
+                result => {
+                    if (result.reason === SpeechSDK.ResultReason.SynthesizingAudioCompleted) {
+                        console.log("Síntesis completada para: " + text);
+                    } else {
+                        console.error("Error en síntesis: ", result.errorDetails);
+                    }
+                    synthesizer.close();
+                },
+                error => {
+                    console.error("Error: " + error);
+                    synthesizer.close();
+                });
         }
 
         function stopTranslation() {
             if (reco) {
                 reco.stopContinuousRecognitionAsync();
                 document.getElementById("eventLog").value += "Reconocimiento detenido.\n";
-                window.speechSynthesis.cancel();
             }
         }
     </script>
