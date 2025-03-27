@@ -29,6 +29,9 @@
 </head>
 <body>
     <h2>Traductor de Voz</h2>
+    <select id="key">
+        <option value="3C3i5huHoQzsSOxUCt8D9iVF8sCrALCHolEWzcjjkfRpDxmVYYkzJQQJ99BCACYeBjFXJ3w3AAAYACOGrQYI" selected="selected">Key Seleccionada</option>
+    </select>
     <br>
     <select id="languageTargetOptions">
         <option value="ar-EG-SalmaNeural">Arabic - EG</option>
@@ -73,7 +76,7 @@
 
         function startTranslation() {
             const languageTargetOptions = document.getElementById("languageTargetOptions");
-            const speechKey = "3C3i5huHoQzsSOxUCt8D9iVF8sCrALCHolEWzcjjkfRpDxmVYYkzJQQJ99BCACYeBjFXJ3w3AAAYACOGrQYI";
+            const speechKey = document.getElementById("key").value;
             const serviceRegion = "eastus";
 
             const speechConfig = SpeechSDK.SpeechTranslationConfig.fromSubscription(speechKey, serviceRegion);
